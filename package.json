@@ -1,0 +1,39 @@
+{
+  "name": "matroidJS",
+  "version": "0.0.1",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "test": "jest --config jestconfig.json",
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amdor/matroidJS.git"
+  },
+  "keywords": [],
+  "author": "ZsoltD",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/amdor/matroidJS/issues"
+  },
+  "homepage": "https://github.com/amdor/matroidJS#readme",
+  "devDependencies": {
+    "@types/jest": "^24.0.23",
+    "jest": "^24.9.0",
+    "prettier": "^1.19.1",
+    "ts-jest": "^24.2.0",
+    "tslint": "^5.20.1",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.7.3"
+  },
+  "files": [
+    "lib/**/*"
+  ]
+}
