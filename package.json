@@ -2,8 +2,8 @@
   "name": "matroidJS",
   "version": "0.0.1",
   "description": "",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "test": "jest --config jestconfig.json",
     "build": "tsc",
@@ -17,7 +17,9 @@
     "type": "git",
     "url": "git+https://github.com/amdor/matroidJS.git"
   },
-  "keywords": [],
+  "keywords": [
+    "matroid"
+  ],
   "author": "ZsoltD",
   "license": "MIT",
   "bugs": {

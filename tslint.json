@@ -1,4 +1,10 @@
 {
-    "extends": ["tslint:recommended", "tslint-config-prettier"],
-    
- }
+    "extends": [
+        "tslint:recommended",
+        "tslint-config-prettier"
+    ],
+    "interface-name": [
+        true,
+        "never-prefix"
+    ]
+}

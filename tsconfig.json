@@ -12,8 +12,15 @@
 				"./node_modules/*"
 			]
 		},
-		"preserveConstEnums": true
+		"preserveConstEnums": true,
+		"strict": true,
+		"outDir": "./dist"
 	},
-	"include": ["src"],
-    "exclude": ["node_modules", "**/*.spec.ts"]
+	"include": [
+		"src"
+	],
+	"exclude": [
+		"node_modules",
+		"**/*.spec.ts"
+	]
 }

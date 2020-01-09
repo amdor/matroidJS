@@ -2,3 +2,4 @@ node_modules
 /lib
 node_modules/
 .vscode/
+dist/
