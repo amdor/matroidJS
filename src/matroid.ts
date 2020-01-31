@@ -1,18 +1,21 @@
+import { RankFunc } from "./dependency";
+
+// since we work with 'sets' we must regard single elements of any type as arrays of length 1, thus every element is T[]
 export class Matroid<T> {
 
-  get ground(): T[] {
+  get ground(): T[][] {
     return this.E;
   }
 
-  set ground(groundSet: T[]) {
+  set ground(groundSet: T[][]) {
     this.E = groundSet;
   }
 
-  get independent(): T[] {
+  get independent(): T[][] {
     return this.I;
   }
 
-  set independent(independentSet: T[]) {
+  set independent(independentSet: T[][]) {
     this.I = independentSet;
   }
 
@@ -21,22 +24,23 @@ export class Matroid<T> {
   }
 
   // ~at least one subset of E is independent, the empty set
-  private E: T[] = [];
-  private I: T[] = [];
-  private rankFunc: (ground: T[]) => T[];
+  private E: T[][];
+  private I: T[][];
+  private base: T[][];
+  private rankFunc: RankFunc<T>;
 
   // independentSet is subset of groundSet
-  constructor(groundSet: T[], independentSet: T[], findBase: (ground: T[]) => T[]) {
+  constructor(groundSet: T[][], independentSets: T[][], rankFn: RankFunc<T>) {
     this.E = groundSet;
-    this.I = independentSet;
-    this.rankFunc = findBase;
+    this.I = independentSets;
+    this.rankFunc = rankFn;
   }
 
-  public getClosure(subSet: T[]) {
+  public getClosure(subSet: T[][]) {
     const closure = [...subSet];
     const initialRank = this.rankFunc(subSet);
     const difference = this.E.filter(x => !subSet.includes(x));
-    difference.forEach((element: T) => {
+    difference.forEach((element: T[]) => {
       closure.push(element);
       if(this.rankFunc(closure) > initialRank) {
         closure.pop();
