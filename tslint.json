@@ -4,7 +4,7 @@
         "tslint-config-prettier"
     ],
     "interface-name": [
-        true,
-        "never-prefix"
-    ]
+        false
+    ],
+    "one-variable-per-declaration": false
 }

@@ -26,15 +26,28 @@ class Project {
 
 class TaskMatroidFactory extends MatroidFactory<Task> {
     // are there tasks with same person working on it?
-    protected hasCircuit(tasks: Task[][]): boolean {
+    protected hasCircuit(taskSets: Task[][] | Task[]): boolean {
         const people: string[] = [];
-        for(const task of tasks) {
-            const peopleOnTask = task.contributors.map(contributor => contributor.name);
-            for(const person of peopleOnTask) {
-                if(people.includes(person)) {
-                    return true;
+        const taskIds = [];
+        let actualSets;
+        if(taskSets.length && Array.isArray(taskSets[0])) {
+            actualSets = taskSets;
+        } else {
+            actualSets = [taskSets];
+        }
+        for(const taskSet of actualSets) {
+            for(const task of taskSet) {
+                if(taskIds.includes(task.id)) {
+                    continue;
                 }
-                people.push(person);
+                taskIds.push(task.id);
+                const peopleOnTask = task.contributors.map(contributor => contributor.name);
+                for(const person of peopleOnTask) {
+                    if(people.includes(person)) {
+                        return true;
+                    }
+                    people.push(person);
+                }
             }
         }
         return false;
