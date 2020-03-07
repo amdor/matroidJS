@@ -9,19 +9,15 @@ export function findBase<T>(matroid: Matroid<T>): T[] {
   let currentMaxRank = 0;
   // all bases are equal, only need to find one
   matroid.ground
-    .sort((a: T[], b: T[]) => a.length - b.length)
+    .sort((a: T[], b: T[]) => b.length - a.length)
     .some((element: T[]) => {
-      // found an independent set that's greater than the last one
+      // going from largest to smallest set the first independent is a base
       if (!matroid.hasCircuit(element) && element.length > currentMaxRank) {
         maxIndependent = element;
         currentMaxRank = element.length;
-        return false;
-      }
-      // if element only greater, there might be another element with the same size that's a base
-      // but if element is bigger by at least 2, then there are no further bases in ground
-      if (element.length > currentMaxRank + 1) {
         return true;
       }
+
       return false;
     });
   return maxIndependent;
@@ -46,9 +42,9 @@ export function findAllBases<T>(matroid: Matroid<T>): T[][] {
         }      
         return false;
       }
-      // if element only greater, there might be another element with the same size that's independent
-      // but if element is bigger by at least 2, then the last one was a base
-      if (element.length > currentMaxRank + 1) {
+      // if element is equal in length, there might be another element with the same size that's base
+      // but if element is smaller, then the last one was the last base
+      if (element.length < currentMaxRank) {
         return true;
       }
       return false;
@@ -71,7 +67,7 @@ export function findIndependents<T>(setToSearch: T[][], hasCircuit: (set: T[][] 
   const independents: T[][] = [];
   let currentMaxRank = 0;
   // all bases are equal, only need to find one
-  setToSearch.sort((a: T[], b: T[]) => b.length - a.length)
+  setToSearch.sort((a: T[], b: T[]) => a.length - b.length)
     .some((element: T[]) => {
       // found an independent set that's greater than the last one
       if (!hasCircuit(element)) {
@@ -81,7 +77,8 @@ export function findIndependents<T>(setToSearch: T[][], hasCircuit: (set: T[][] 
         independents.push(element)
         return false;
       }
-      // bases are the max independent
+      // bases are the max independent if there were no independent sets in lenght + 1 size, then
+      // there are no more independents
       if (element.length > currentMaxRank + 1) {
         return true;
       }
