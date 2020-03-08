@@ -1,5 +1,6 @@
 // tslint:disable:max-classes-per-file
 import { Matroid } from "../src/matroid";
+import { findBase } from "../src/generic-functions";
 
 
 class Person {
@@ -68,7 +69,7 @@ const MOCK_TASKS: Task[] = [
     {contributors: [MOCK_PEOPLE[3]], id: "4"}
 ];
 
-describe("matroid integration", () => {
+describe("a task matroid", () => {
     let project: Project;
     let taskMatroid: Matroid<Task>;
 
@@ -78,12 +79,28 @@ describe("matroid integration", () => {
     });
 
     it("should be dependent when there are tasks with the same contributor", () => {
-        expect(taskMatroid.ground.length).toBe(16);
         expect(taskMatroid.rank).toBe(3);
+        // not all sets are independent
+        expect(taskMatroid.independent.length).toBeLessThan(taskMatroid.ground.length);
+        // biggest subset cannot be independent if rank is smaller
+        const biggestSubset = taskMatroid.ground.sort((firstTask: Task[], secondTask: Task[]) => secondTask.length - firstTask.length )[0];
+        expect(biggestSubset.length).toBeGreaterThan(taskMatroid.rank);
     });
 
-    it("should have independent subset", () => {
-        // expect(taskMatroid.ground.length).toBe(4);
-        // expect(taskMatroid.rank).toBe(3);
+    it("should have independent subsets", () => {
+        taskMatroid.independent.forEach((task: Task[]) => expect(taskMatroid.hasCircuit(task)).toBe(false));
+    });
+
+    it("should have a base thats closure is the ground", () => {
+        const base = findBase(taskMatroid);
+        // there is a subset in independent subsets that has the same elements as base
+        expect(taskMatroid.independent.some(
+            (indep: Task[]) => indep.every(
+                (indepElem: Task) => base.some(
+                    (baseTask: Task) => baseTask.id === indepElem.id)
+                )
+            )
+        ).toBe(true);
+        expect(taskMatroid.getClosure([base]).length).toEqual(taskMatroid.ground.length);
     });
 });

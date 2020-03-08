@@ -50,7 +50,7 @@ export abstract class Matroid<T> {
    */
   public abstract hasCircuit(subSetToCheck: T[][] | T[]): boolean;
 
-  public getClosure(subSet: T[][]) {
+  public getClosure(subSet: T[][]): T[][] {
     const closure = [...subSet];
     const initialRank = this.rankFunc(subSet);
     const difference = this.E.filter(x => !subSet.includes(x));
@@ -60,6 +60,7 @@ export abstract class Matroid<T> {
         closure.pop();
       }
     });
+    return closure;
   }
 
   protected rankFunc(subSet: T[][]): number {
