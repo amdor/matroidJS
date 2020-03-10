@@ -1,6 +1,6 @@
 // tslint:disable:max-classes-per-file
-import { Matroid } from "../src/matroid";
 import { findBase } from "../src/generic-functions";
+import { Matroid } from "../src/matroid";
 
 
 class Person {
