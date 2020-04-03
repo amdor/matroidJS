@@ -1,12 +1,12 @@
 {
-  "name": "matroidJS",
+  "name": "matroidjs",
   "version": "0.1.1",
   "description": "",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "test": "jest --config jest.config.js",
-    "build": "tsc",
+    "build": "rm -R -f ./dist && tsc",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json",
     "prepublishOnly": "npm test && npm run lint",
