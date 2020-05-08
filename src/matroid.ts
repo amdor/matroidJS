@@ -19,7 +19,7 @@ export abstract class Matroid<T> {
   }
 
   get rank(): number {
-    return this.rankFunc(this.I);
+    return this.I.length ?? this.rankFunc(this.I);
   }
 
   // ~at least one subset of E is independent, the empty set
@@ -45,18 +45,25 @@ export abstract class Matroid<T> {
 
   /**
    * Searches for circuits in the given subset
-   * @param subSetToCheck a subset of E to find circuits in, we must expect simple subsets as well as sets of subsets
+   * @param subsetToCheck a subset of E to find circuits in, we must expect simple subsets as well as sets of subsets
    */
-  public abstract hasCircuit(subSetToCheck: T[][] | T[]): boolean;
+  public abstract hasCircuit(subsetToCheck: T[][] | T[]): boolean;
 
-  public getClosure(subSet: T[][]): T[][] {
-    const closure = [...subSet];
-    const initialRank = this.rankFunc(subSet);
-    const difference = this.E.filter(x => !subSet.includes(x));
-    difference.forEach((element: T[]) => {
-      closure.push(element);
-      if (this.rankFunc(closure) > initialRank) {
-        closure.pop();
+  // Get closure for a subset of the groundset (E)
+  // @return the closure of closureBasis subSet on E
+  public getClosure(closureBasis: T[][]): T[][] {
+    const closure = [...closureBasis];
+    const initialRank = this.rankFunc(closureBasis);
+    // difference = E \ subSet
+    const differenceFromGround = this.E.filter(x => !closureBasis.includes(x));
+    // all independent sets with greater rank than closureBasis'
+    const greaterIndependentsThanInClosureBasis = findIndependents<T>(differenceFromGround, this.hasCircuit)
+      .filter((independent: T[]) => independent.length > initialRank);
+
+    differenceFromGround.forEach((element: T[]) => {
+      // elements not containing greater independents (~have smaller than or equal rank to colsureBasis) are added to closure
+      if(!this.doesIncludeSubset(element, greaterIndependentsThanInClosureBasis)){
+        closure.push(element);
       }
     });
     return closure;
@@ -64,5 +71,14 @@ export abstract class Matroid<T> {
 
   protected rankFunc(subSet: T[][]): number {
     return findBase({ ground: subSet, hasCircuit: this.hasCircuit } as Matroid<T>).length;
+  }
+
+  // checking if any of `setsToCheckWith` is a subset of `setToCheck`
+  private doesIncludeSubset(setToCheck: T[], setsToCheckWith: T[][]): boolean {
+    return setsToCheckWith.some((setToCheckWith: T[]) => {
+      return setToCheckWith.every((elementToCheckWith: T) => {
+        return setToCheck.includes(elementToCheckWith);
+      });
+    });
   }
 }

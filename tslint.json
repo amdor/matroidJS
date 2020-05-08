@@ -6,5 +6,6 @@
     "interface-name": [
         false
     ],
-    "one-variable-per-declaration": false
+    "one-variable-per-declaration": false,
+    "object-literal-sort-keys": false
 }
