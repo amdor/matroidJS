@@ -11,7 +11,8 @@
     "lint": "tslint -p tsconfig.json",
     "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm run lint",
-    "version": "npm run format"
+    "version": "npm run format",
+    "postversion": "git push && git push --tags"
   },
   "repository": {
     "type": "git",
@@ -36,6 +37,6 @@
     "typescript": "^3.7.3"
   },
   "files": [
-    "lib/**/*"
+    "dist/**/*"
   ]
 }

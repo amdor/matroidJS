@@ -198,13 +198,13 @@ describe("a timetable matroid", () => {
 
         // if CLASSES is the set of classes a student is interested in bases are the class groups 
         // available for simoultanous attendance
-        fit("should have two bases with maximum independent class sets", () => {
+        it("should have two bases with maximum independent class sets", () => {
             const bases = findAllBases(matroid);
             expect(bases.length).toBe(4);
             for (const base of bases) {
                 expect(base.length).toBe(4);
             }
         });
-        
+
     });
 });
