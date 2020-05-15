@@ -45,14 +45,15 @@ function isOverlappingOrConsecutiveInDifferentBuilding(classA: Class, classB: Cl
         ))
 }
 
-function isExtendableWithClass(indepClasses: { [key: string]: Class }, claz: Class): boolean {
+function isExtendableWithClass(indepClasses: { [key: string]: Class }, claz: Class, otherCondition: (cl1: Class, cl2: Class) => boolean): boolean {
     const indepClassesValues = Object.keys(indepClasses).map(key => indepClasses[key]);
     return indepClassesValues.some(
-        (indepClass: Class) => isOverlappingOrConsecutiveInDifferentBuilding(indepClass, claz)
+        (indepClass: Class) => isOverlappingOrConsecutiveInDifferentBuilding(indepClass, claz) && otherCondition(indepClass, claz)
     );
 }
 
-function classMatroidHasCircuit(subsetToCheck: Class[] | Class[][]) {
+// TODO maybe some better solution then `otherCondition`
+function classMatroidHasCircuit(subsetToCheck: Class[] | Class[][], otherCondition = (cl1: Class, cl2: Class) => true) {
     let innerSubsetToCheck = [];
     if (subsetToCheck.length && Array.isArray(subsetToCheck[0])) {
         innerSubsetToCheck = subsetToCheck;
@@ -68,7 +69,7 @@ function classMatroidHasCircuit(subsetToCheck: Class[] | Class[][]) {
                 return false;
             }
 
-            const isClazDependentToPrevClasses = isExtendableWithClass(indepClasses, claz);
+            const isClazDependentToPrevClasses = isExtendableWithClass(indepClasses, claz, otherCondition);
             if (isClazDependentToPrevClasses) {
                 return true;
             }
@@ -79,10 +80,13 @@ function classMatroidHasCircuit(subsetToCheck: Class[] | Class[][]) {
 }
 
 class LectorTimetableMatroid extends Matroid<Class> {
-    // classes are dependent if they have the same lector and are in the same time or they are in consecutive timeslots in different buildings
+    // classes are dependent if (AND)
+    // - they have the same lector
+    // - they are in the same time OR they are in consecutive timeslots in different buildings
     // if returns true, then dependent
     public hasCircuit(subsetToCheck: Class[] | Class[][]): boolean {
-        return classMatroidHasCircuit(subsetToCheck);
+        const isSameLector = (indepClass: Class, classToAdd: Class) => indepClass.lector === classToAdd.lector
+        return classMatroidHasCircuit(subsetToCheck, isSameLector);
     }
 
 }
@@ -92,7 +96,6 @@ class StudentTimetableMatroid extends Matroid<Class> {
     // classes are dependent if (this is OR condition)
     // - they are at the same time
     // - they are in consecutive timeslots in different buildings
-    // - there's no capacity
     public hasCircuit(subsetToCheck: Class[] | Class[][]): boolean {
         return classMatroidHasCircuit(subsetToCheck);
     }
@@ -102,7 +105,7 @@ class StudentTimetableMatroid extends Matroid<Class> {
 const CLASS1: Class = {
     name: "CLASS1",
     occurances: [{ week: Week.A, day: Day.Monday, timeSlot: 2, place: Building.E }],
-    lector: "Dr Knohow",
+    lector: "Dr Knowhow",
     freeCapacity: 15
 }
 
@@ -142,6 +145,8 @@ describe("a timetable matroid", () => {
             matroid = new StudentTimetableMatroid(CLASSES);
         });
 
+        // if CLASSES is the set of classes a student is interested in bases are the class groups 
+        // available for simoultanous attendance
         it("should have two bases with maximum independent class sets", () => {
             const bases = findAllBases(matroid);
             expect(bases.length).toBe(4);
@@ -151,6 +156,7 @@ describe("a timetable matroid", () => {
         });
 
         // CLASS2 and CLASS3 are independent
+        // checking what classes cannot be attended if these two are
         it("should provide closure for subset of the matroid", () => {
             const subset = matroid.ground.find((element: Class[]) => element.length === 2 && element.includes(CLASS2) && element.includes(CLASS3)) ?? [];
 
@@ -166,8 +172,39 @@ describe("a timetable matroid", () => {
                 return closureSubsetA.length - closureSubsetB.length
             });
             // CLASS2 is in dependency with both CLASS1 and CLASS2_DIFF_LECTOR, while CLASS3 is with CLASS3_NO_CAPACITY
-            // hence the two of them has at most 3 dependents
+            // hence the two of them have at most 3 dependents
             expect(closureSet[closureSet.length - 1].length).toBe(3);
         });
+    });
+
+    describe("a lector timetable matroid", () => {
+        beforeEach(() => {
+            matroid = new LectorTimetableMatroid(CLASSES);
+        });
+
+        describe("when there are 2 classes at the same time, with the same lector", () => {
+            beforeEach(() => {
+                matroid = new LectorTimetableMatroid([CLASS1, CLASS1_DIFF_BUILD]);
+            });
+
+            it("should have independent subsets of 1 class", () => {
+                const independents = matroid.independent;
+                expect(independents.length).toBe(3); // [] is always independent
+                expect(independents[0].length).toBe(0);
+                expect(independents[1].length).toBe(1);
+                expect(independents[2].length).toBe(1);
+            });
+        });
+
+        // if CLASSES is the set of classes a student is interested in bases are the class groups 
+        // available for simoultanous attendance
+        fit("should have two bases with maximum independent class sets", () => {
+            const bases = findAllBases(matroid);
+            expect(bases.length).toBe(4);
+            for (const base of bases) {
+                expect(base.length).toBe(4);
+            }
+        });
+        
     });
 });

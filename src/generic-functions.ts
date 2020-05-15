@@ -1,6 +1,6 @@
 import { Matroid } from './matroid';
 
-type CircuitFunc<F> = (set: F[][] | F[]) => boolean
+type CircuitFunc<F> = (set: F[][] | F[]) => boolean;
 
 function findGroundBase<T>(ground: T[][], hasCircuit: CircuitFunc<T>): T[] {
   let maxIndependent: T[] = [];

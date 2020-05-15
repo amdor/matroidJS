@@ -57,8 +57,9 @@ export abstract class Matroid<T> {
     // difference = E \ subSet
     const differenceFromGround = this.E.filter(x => !closureBasis.includes(x));
     // all independent sets with greater rank than closureBasis'
-    const greaterIndependentsThanInClosureBasis = findIndependents<T>(differenceFromGround, this.hasCircuit)
-      .filter((independent: T[]) => independent.length > initialRank);
+    const greaterIndependentsThanInClosureBasis = findIndependents<T>(differenceFromGround, this.hasCircuit).filter(
+      (independent: T[]) => independent.length > initialRank,
+    );
 
     differenceFromGround.forEach((element: T[]) => {
       // elements not containing greater independents (~have smaller than or equal rank to colsureBasis) are added to closure
@@ -71,7 +72,7 @@ export abstract class Matroid<T> {
 
   protected rankFunc(subSet?: T[][]): number {
     if (!subSet) {
-      return findBase(this).length
+      return findBase(this).length;
     }
     return findBase(subSet, this.hasCircuit).length;
   }
