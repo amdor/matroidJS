@@ -1,19 +1,17 @@
 import { Matroid } from './matroid';
 
-export function getAllSubsets<T>(toSubset: T[]): T[][] {
-  return toSubset.reduce((subsets: T[][], value: T) => subsets.concat(subsets.map(set => [value, ...set])), [[]]);
-}
+type CircuitFunc<F> = (set: F[][] | F[]) => boolean
 
-export function findBase<T>(matroid: Matroid<T>): T[] {
+function findGroundBase<T>(ground: T[][], hasCircuit: CircuitFunc<T>): T[] {
   let maxIndependent: T[] = [];
   // should not modify the original ground with sort
-  const ground = [...matroid.ground];
+  const sortedGround = [...ground];
   // all bases are equal, only need to find one
   ground
     .sort((a: T[], b: T[]) => b.length - a.length)
     .some((element: T[]) => {
       // going from largest to smallest set the first independent is a base
-      if (!matroid.hasCircuit(element)) {
+      if (!hasCircuit(element)) {
         maxIndependent = element;
         return true;
       }
@@ -23,8 +21,23 @@ export function findBase<T>(matroid: Matroid<T>): T[] {
   return maxIndependent;
 }
 
+export function getAllSubsets<T>(toSubset: T[]): T[][] {
+  return toSubset.reduce((subsets: T[][], value: T) => subsets.concat(subsets.map(set => [value, ...set])), [[]]);
+}
+
+export function findBase<T>(matroid: Matroid<T>): T[];
+export function findBase<T>(ground: T[][], hasCircuit: CircuitFunc<T>): T[];
+export function findBase<T>(matroidOrGround: Matroid<T> | T[][], hasCircuit?: CircuitFunc<T>): T[] {
+  if (hasCircuit) {
+    return findGroundBase(matroidOrGround as T[][], hasCircuit);
+  }
+  const indeps = [...(matroidOrGround as Matroid<T>).independent];
+  // looking for max independent
+  return indeps.sort((a: T[], b: T[]) => b.length - a.length)?.[0] ?? [];
+}
+
 export function findAllBases<T>(matroid: Matroid<T>): T[][] {
-  const maxIndependent: T[][] = [];
+  const maxIndependents: T[][] = [];
   const ground = matroid.ground;
   const firstBase = findBase(matroid);
 
@@ -33,11 +46,11 @@ export function findAllBases<T>(matroid: Matroid<T>): T[][] {
       .filter((subSet: T[]) => subSet.length === firstBase.length)
       .forEach((element: T[]) => {
         if (!matroid.hasCircuit(element)) {
-          maxIndependent.push(element);
+          maxIndependents.push(element);
         }
       });
   }
-  return maxIndependent;
+  return maxIndependents;
 }
 
 export function findIndependents<T>(setToSearch: T[][], hasCircuit: (set: T[][] | T[]) => boolean): T[][] {

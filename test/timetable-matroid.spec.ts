@@ -144,7 +144,7 @@ describe("a timetable matroid", () => {
 
         it("should have two bases with maximum independent class sets", () => {
             const bases = findAllBases(matroid);
-            expect(bases.length).toBe(2);
+            expect(bases.length).toBe(4);
             for (const base of bases) {
                 expect(base.length).toBe(3);
             }

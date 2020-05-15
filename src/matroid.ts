@@ -19,7 +19,7 @@ export abstract class Matroid<T> {
   }
 
   get rank(): number {
-    return this.I.length ?? this.rankFunc(this.I);
+    return this.rankFunc();
   }
 
   // ~at least one subset of E is independent, the empty set
@@ -62,15 +62,18 @@ export abstract class Matroid<T> {
 
     differenceFromGround.forEach((element: T[]) => {
       // elements not containing greater independents (~have smaller than or equal rank to colsureBasis) are added to closure
-      if(!this.doesIncludeSubset(element, greaterIndependentsThanInClosureBasis)){
+      if (!this.doesIncludeSubset(element, greaterIndependentsThanInClosureBasis)) {
         closure.push(element);
       }
     });
     return closure;
   }
 
-  protected rankFunc(subSet: T[][]): number {
-    return findBase({ ground: subSet, hasCircuit: this.hasCircuit } as Matroid<T>).length;
+  protected rankFunc(subSet?: T[][]): number {
+    if (!subSet) {
+      return findBase(this).length
+    }
+    return findBase(subSet, this.hasCircuit).length;
   }
 
   // checking if any of `setsToCheckWith` is a subset of `setToCheck`
