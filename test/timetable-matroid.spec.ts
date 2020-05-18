@@ -1,5 +1,5 @@
 // tslint:disable:max-classes-per-file
-import { findBase, findAllBases } from "../src/generic-functions";
+import { findAllBases } from "../src/generic-functions";
 import { Matroid } from "../src/matroid";
 
 class Class {
@@ -52,7 +52,6 @@ function isExtendableWithClass(indepClasses: { [key: string]: Class }, claz: Cla
     );
 }
 
-// TODO maybe some better solution then `otherCondition`
 function classMatroidHasCircuit(subsetToCheck: Class[] | Class[][], otherCondition = (cl1: Class, cl2: Class) => true) {
     let innerSubsetToCheck = [];
     if (subsetToCheck.length && Array.isArray(subsetToCheck[0])) {
@@ -88,7 +87,6 @@ class LectorTimetableMatroid extends Matroid<Class> {
         const isSameLector = (indepClass: Class, classToAdd: Class) => indepClass.lector === classToAdd.lector
         return classMatroidHasCircuit(subsetToCheck, isSameLector);
     }
-
 }
 
 
@@ -99,7 +97,6 @@ class StudentTimetableMatroid extends Matroid<Class> {
     public hasCircuit(subsetToCheck: Class[] | Class[][]): boolean {
         return classMatroidHasCircuit(subsetToCheck);
     }
-
 }
 
 const CLASS1: Class = {
@@ -161,12 +158,10 @@ describe("a timetable matroid", () => {
             const subset = matroid.ground.find((element: Class[]) => element.length === 2 && element.includes(CLASS2) && element.includes(CLASS3)) ?? [];
 
             // interested only in subsets where CLASS2 and CLASS3 are in as base
-            const closureSet = matroid.getClosure([subset])
+            let closureSet = matroid.getClosure([subset])
                 .filter((closureSubset: Class[]) => closureSubset.includes(CLASS2) && closureSubset.includes(CLASS3));
             // let's not consider the original subset in the closures
-            for (let i = 0; i < closureSet.length; i++) {
-                closureSet[i] = closureSet[i].filter((claz: Class) => claz !== CLASS2 && claz !== CLASS3);
-            }
+            closureSet = closureSet.map(closureElem => closureElem.filter((claz: Class) => claz !== CLASS2 && claz !== CLASS3));
 
             closureSet.sort((closureSubsetA: Class[], closureSubsetB: Class[]) => {
                 return closureSubsetA.length - closureSubsetB.length
