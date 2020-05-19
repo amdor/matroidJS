@@ -45,17 +45,18 @@ export abstract class Matroid<T> {
 
   /**
    * Searches for circuits in the given subset
-   * @param subsetToCheck a subset of E to find circuits in, we must expect simple subsets as well as sets of subsets
+   * @param subsetToCheck a subset of E to find circuits in, expects simple subsets
    */
-  public abstract hasCircuit(subsetToCheck: T[][] | T[]): boolean;
+  public abstract hasCircuit(subsetToCheck: T[]): boolean;
 
   // Get closure for a subset of the groundset (E)
   // @return the closure of closureBasis subSet on E
-  public getClosure(closureBasis: T[][]): T[][] {
-    const closure = [...closureBasis];
-    const initialRank = this.rankFunc(closureBasis);
-    // difference = E \ subSet
-    const differenceFromGround = this.E.filter(x => !closureBasis.includes(x));
+  public getClosure(closureBasis: T[][] | T[]): T[][] {
+    const isSetOfSets = closureBasis.length && Array.isArray(closureBasis[0])
+    const closure: T[][] = isSetOfSets ? [...closureBasis] as T[][] : [closureBasis] as T[][];
+    const initialRank = isSetOfSets ? this.rankFunc(closure) : closureBasis.length;
+    // difference = E \ closureBasis
+    const differenceFromGround = this.E.filter((groundSubset: T[]) => !closure.includes(groundSubset));
     // all independent sets with greater rank than closureBasis'
     const greaterIndependentsThanInClosureBasis = findIndependents<T>(differenceFromGround, this.hasCircuit).filter(
       (independent: T[]) => independent.length > initialRank,

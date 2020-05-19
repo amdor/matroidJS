@@ -1,22 +1,22 @@
 import { Matroid } from './matroid';
 
-type CircuitFunc<F> = (set: F[][] | F[]) => boolean;
+type CircuitFunc<F> = (set: F[]) => boolean;
 
 function findGroundBase<T>(ground: T[][], hasCircuit: CircuitFunc<T>): T[] {
   let maxIndependent: T[] = [];
   // should not modify the original ground with sort
   const sortedGround = [...ground];
   // all bases are equal, only need to find one
-  ground
+  sortedGround
     .sort((a: T[], b: T[]) => b.length - a.length)
     .some((element: T[]) => {
       // going from largest to smallest set the first independent is a base
-      if (!hasCircuit(element)) {
-        maxIndependent = element;
-        return true;
+      if (hasCircuit(element)) {
+        return false;
       }
 
-      return false;
+      maxIndependent = element;
+      return true;
     });
   return maxIndependent;
 }
@@ -53,27 +53,25 @@ export function findAllBases<T>(matroid: Matroid<T>): T[][] {
   return maxIndependents;
 }
 
-export function findIndependents<T>(setToSearch: T[][], hasCircuit: (set: T[][] | T[]) => boolean): T[][] {
+export function findIndependents<T>(setToSearch: T[][], hasCircuit: CircuitFunc<T>): T[][] {
   const independents: T[][] = [];
-  let currentMaxRank = 0;
   const setToSearchSorted = [...setToSearch];
+  let currentMaxRank = 0;
   // going from smallest set to largest
   setToSearchSorted
     .sort((a: T[], b: T[]) => a.length - b.length)
     .some((element: T[]) => {
       // found an independent set that's greater than the last one
-      if (!hasCircuit(element)) {
-        if (element.length > currentMaxRank) {
-          currentMaxRank = element.length;
-        }
-        independents.push(element);
-        return false;
+      if (hasCircuit(element)) {
+        // bases are the max independent if there were no independent sets in lenght + 1 size, then
+        // there are no more independents
+        return element.length > currentMaxRank + 1
       }
-      // bases are the max independent if there were no independent sets in lenght + 1 size, then
-      // there are no more independents
-      if (element.length > currentMaxRank + 1) {
-        return true;
+
+      if (element.length > currentMaxRank) {
+        currentMaxRank = element.length;
       }
+      independents.push(element);
       return false;
     });
 

@@ -52,29 +52,20 @@ function isExtendableWithClass(indepClasses: { [key: string]: Class }, claz: Cla
     );
 }
 
-function classMatroidHasCircuit(subsetToCheck: Class[] | Class[][], otherCondition = (cl1: Class, cl2: Class) => true) {
-    let innerSubsetToCheck = [];
-    if (subsetToCheck.length && Array.isArray(subsetToCheck[0])) {
-        innerSubsetToCheck = subsetToCheck;
-    } else {
-        innerSubsetToCheck.push(subsetToCheck);
-    }
-
+function classMatroidHasCircuit(subsetToCheck: Class[], otherCondition = (cl1: Class, cl2: Class) => true) {
     const indepClasses: { [key: string]: Class } = {};
 
-    return innerSubsetToCheck.some((classes: Class[]) => {
-        return classes.some((claz: Class) => {
-            if (indepClasses[claz.name]) {
-                return false;
-            }
-
-            const isClazDependentToPrevClasses = isExtendableWithClass(indepClasses, claz, otherCondition);
-            if (isClazDependentToPrevClasses) {
-                return true;
-            }
-            indepClasses[claz.name] = claz;
+    return subsetToCheck.some((claz: Class) => {
+        if (indepClasses[claz.name]) {
             return false;
-        });
+        }
+
+        const isClazDependentToPrevClasses = isExtendableWithClass(indepClasses, claz, otherCondition);
+        if (isClazDependentToPrevClasses) {
+            return true;
+        }
+        indepClasses[claz.name] = claz;
+        return false;
     });
 }
 
@@ -83,7 +74,7 @@ class LectorTimetableMatroid extends Matroid<Class> {
     // - they have the same lector
     // - they are in the same time OR they are in consecutive timeslots in different buildings
     // if returns true, then dependent
-    public hasCircuit(subsetToCheck: Class[] | Class[][]): boolean {
+    public hasCircuit(subsetToCheck: Class[]): boolean {
         const isSameLector = (indepClass: Class, classToAdd: Class) => indepClass.lector === classToAdd.lector
         return classMatroidHasCircuit(subsetToCheck, isSameLector);
     }
@@ -94,7 +85,7 @@ class StudentTimetableMatroid extends Matroid<Class> {
     // classes are dependent if (this is OR condition)
     // - they are at the same time
     // - they are in consecutive timeslots in different buildings
-    public hasCircuit(subsetToCheck: Class[] | Class[][]): boolean {
+    public hasCircuit(subsetToCheck: Class[]): boolean {
         return classMatroidHasCircuit(subsetToCheck);
     }
 }
@@ -158,7 +149,7 @@ describe("a timetable matroid", () => {
             const subset = matroid.ground.find((element: Class[]) => element.length === 2 && element.includes(CLASS2) && element.includes(CLASS3)) ?? [];
 
             // interested only in subsets where CLASS2 and CLASS3 are in as base
-            let closureSet = matroid.getClosure([subset])
+            let closureSet = matroid.getClosure(subset)
                 .filter((closureSubset: Class[]) => closureSubset.includes(CLASS2) && closureSubset.includes(CLASS3));
             // let's not consider the original subset in the closures
             closureSet = closureSet.map(closureElem => closureElem.filter((claz: Class) => claz !== CLASS2 && claz !== CLASS3));

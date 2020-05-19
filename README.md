@@ -7,35 +7,27 @@ To get started with Matroids you need to define what is considered a dependency 
 ```typescript
 class TaskMatroid extends Matroid<Task> {
     // are there tasks with same person working on it?
-    public hasCircuit(taskSets: Task[][] | Task[]): boolean {
+    public hasCircuit(taskSet: Task[]): boolean {
         const people: string[] = [];
         const taskIds = [];
-        let actualSets;
-        if(taskSets.length && Array.isArray(taskSets[0])) {
-            actualSets = taskSets;
-        } else {
-            actualSets = [taskSets];
-        }
-        for(const taskSet of actualSets) {
-            for(const task of taskSet) {
-                if(taskIds.includes(task.id)) {
-                    continue;
+        for (const task of taskSet) {
+            if (taskIds.includes(task.id)) {
+                continue;
+            }
+            taskIds.push(task.id);
+            const peopleOnTask = task.contributors.map(contributor => contributor.name);
+            for (const person of peopleOnTask) {
+                if (people.includes(person)) {
+                    return true;
                 }
-                taskIds.push(task.id);
-                const peopleOnTask = task.contributors.map(contributor => contributor.name);
-                for(const person of peopleOnTask) {
-                    if(people.includes(person)) {
-                        return true;
-                    }
-                    people.push(person);
-                }
+                people.push(person);
             }
         }
         return false;
     }
-} 
+}
 ```
-In this example we have Tasks as the model we want to matroidize. Tasks have contributors and contributors have names. Any two different Tasks are considered dependent if there is a person working on both of them. Note the function signature `public hasCircuit(taskSets: Task[][] | Task[]): boolean {`, the Matroid<T> descendant must be able to tell if there is a dependency in a T[] or in a T[][] also.
+In this example we have Tasks as the model we want to matroidize. Tasks have contributors and contributors have names. Any two different Tasks are considered dependent if there is a person working on both of them. Note the function signature `public hasCircuit(taskSet: Task[]): boolean {`, the Matroid<T> descendant must be able to tell if there is a dependency in a T[].
 
 After defining your dependency function `hasCircuit` we can add our data to the new class
 ```typescript
@@ -52,13 +44,13 @@ You also have `ground` and `independent` properties. `ground` contains all possi
 
 Then there are the util functions consuming matroids:
 ### findBase():
-Returns the first rank sized (biggest possible) independent set of T (T[]). For instance in the example above this would contain 3 Tasks (id 1,3,4). 
+Returns the first rank sized (biggest possible) independent set of T (T[]). For instance in the example above this would contain 3 Tasks (id 1,3,4). Works on both matroids and subsets (T[][]) of E ground as well
 
-### findBases():
+### findAllBases():
 As opposed to `findBase()` this returns all the rank sized T sets (T[][]) that are independent, in this example case there are two: the one mentioned above (ids 1,3,4), and an other (ids 2,3,4)
 
 ### findIndependents():
 Returns all independent sets (T[][]) regardless of their size.
 
 ### getClosure():
-This function return a set of sets (T[][]) thats rank is not greater than the original, meaning the maximum number of independent T items in every returned T sets (T[]) is less then or equal to the original set. The parameter for this function is a set of sets (T[][]), not a Matroid. Naturally if the parameter contains a base as well, then the return value will be the ground of the Matroid.
+This function return a set of sets (T[][]) thats rank is not greater than the original, meaning the maximum number of independent T items in every returned T sets (T[]) is less then or equal to the original set. The parameter for this function is a set or sets (T[][]), not a Matroid. Naturally if the parameter contains a base as well, then the return value will be the ground of the Matroid.

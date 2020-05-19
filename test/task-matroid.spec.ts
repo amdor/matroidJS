@@ -26,47 +26,39 @@ class Project {
 
 class TaskMatroid extends Matroid<Task> {
     // are there tasks with same person working on it?
-    public hasCircuit(taskSets: Task[][] | Task[]): boolean {
+    public hasCircuit(taskSet: Task[]): boolean {
         const people: string[] = [];
         const taskIds = [];
-        let actualSets;
-        if(taskSets.length && Array.isArray(taskSets[0])) {
-            actualSets = taskSets;
-        } else {
-            actualSets = [taskSets];
-        }
-        for(const taskSet of actualSets) {
-            for(const task of taskSet) {
-                if(taskIds.includes(task.id)) {
-                    continue;
+        for (const task of taskSet) {
+            if (taskIds.includes(task.id)) {
+                continue;
+            }
+            taskIds.push(task.id);
+            const peopleOnTask = task.contributors.map(contributor => contributor.name);
+            for (const person of peopleOnTask) {
+                if (people.includes(person)) {
+                    return true;
                 }
-                taskIds.push(task.id);
-                const peopleOnTask = task.contributors.map(contributor => contributor.name);
-                for(const person of peopleOnTask) {
-                    if(people.includes(person)) {
-                        return true;
-                    }
-                    people.push(person);
-                }
+                people.push(person);
             }
         }
         return false;
     }
-} 
+}
 
-const MOCK_PEOPLE: Person[] = [{name: "Zsolt", team: "Atlantis"}, {name: "Levi", team: "Prometheus"}, {name: "Lilla", team: "Prometheus"}, {name: "Gabi", team: "Laika"}]
+const MOCK_PEOPLE: Person[] = [{ name: "Zsolt", team: "Atlantis" }, { name: "Levi", team: "Prometheus" }, { name: "Lilla", team: "Prometheus" }, { name: "Gabi", team: "Laika" }]
 
 const MOCK_TEAMS: Team[] = [
-    {name: "Atlantis", members: [MOCK_PEOPLE[0]]},
-    {name: "Prometheus", members: [MOCK_PEOPLE[1], MOCK_PEOPLE[2]]},
-    {name: "Laika", members: [MOCK_PEOPLE[3]]},
+    { name: "Atlantis", members: [MOCK_PEOPLE[0]] },
+    { name: "Prometheus", members: [MOCK_PEOPLE[1], MOCK_PEOPLE[2]] },
+    { name: "Laika", members: [MOCK_PEOPLE[3]] },
 ];
 
 const MOCK_TASKS: Task[] = [
-    {contributors: [MOCK_PEOPLE[0]], id: "1"},
-    {contributors: [MOCK_PEOPLE[0], MOCK_PEOPLE[1]], id: "2"}, 
-    {contributors: [MOCK_PEOPLE[2]], id: "3"}, 
-    {contributors: [MOCK_PEOPLE[3]], id: "4"}
+    { contributors: [MOCK_PEOPLE[0]], id: "1" },
+    { contributors: [MOCK_PEOPLE[0], MOCK_PEOPLE[1]], id: "2" },
+    { contributors: [MOCK_PEOPLE[2]], id: "3" },
+    { contributors: [MOCK_PEOPLE[3]], id: "4" }
 ];
 
 describe("a task matroid", () => {
@@ -74,7 +66,7 @@ describe("a task matroid", () => {
     let taskMatroid: Matroid<Task>;
 
     beforeEach(() => {
-        project = {teams: [...MOCK_TEAMS], tasks: [...MOCK_TASKS]};
+        project = { teams: [...MOCK_TEAMS], tasks: [...MOCK_TASKS] };
         taskMatroid = new TaskMatroid(project.tasks);
     });
 
@@ -83,7 +75,7 @@ describe("a task matroid", () => {
         // not all sets are independent
         expect(taskMatroid.independent.length).toBeLessThan(taskMatroid.ground.length);
         // biggest subset cannot be independent if rank is smaller
-        const biggestSubset = taskMatroid.ground.sort((firstTask: Task[], secondTask: Task[]) => secondTask.length - firstTask.length )[0];
+        const biggestSubset = taskMatroid.ground.sort((firstTask: Task[], secondTask: Task[]) => secondTask.length - firstTask.length)[0];
         expect(biggestSubset.length).toBeGreaterThan(taskMatroid.rank);
     });
 
@@ -98,9 +90,9 @@ describe("a task matroid", () => {
             (indep: Task[]) => indep.every(
                 (indepElem: Task) => base.some(
                     (baseTask: Task) => baseTask.id === indepElem.id)
-                )
             )
+        )
         ).toBe(true);
-        expect(taskMatroid.getClosure([base]).length).toEqual(taskMatroid.ground.length);
+        expect(taskMatroid.getClosure(base).length).toEqual(taskMatroid.ground.length);
     });
 });
