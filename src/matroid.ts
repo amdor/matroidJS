@@ -52,8 +52,8 @@ export abstract class Matroid<T> {
   // Get closure for a subset of the groundset (E)
   // @return the closure of closureBasis subSet on E
   public getClosure(closureBasis: T[][] | T[]): T[][] {
-    const isSetOfSets = closureBasis.length && Array.isArray(closureBasis[0])
-    const closure: T[][] = isSetOfSets ? [...closureBasis] as T[][] : [closureBasis] as T[][];
+    const isSetOfSets = closureBasis.length && Array.isArray(closureBasis[0]);
+    const closure: T[][] = isSetOfSets ? ([...closureBasis] as T[][]) : ([closureBasis] as T[][]);
     const initialRank = isSetOfSets ? this.rankFunc(closure) : closureBasis.length;
     // difference = E \ closureBasis
     const differenceFromGround = this.E.filter((groundSubset: T[]) => !closure.includes(groundSubset));

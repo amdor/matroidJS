@@ -65,7 +65,7 @@ export function findIndependents<T>(setToSearch: T[][], hasCircuit: CircuitFunc<
       if (hasCircuit(element)) {
         // bases are the max independent if there were no independent sets in lenght + 1 size, then
         // there are no more independents
-        return element.length > currentMaxRank + 1
+        return element.length > currentMaxRank + 1;
       }
 
       if (element.length > currentMaxRank) {
