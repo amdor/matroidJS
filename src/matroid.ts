@@ -28,14 +28,14 @@ export abstract class Matroid<T> {
 
   constructor(setOfAtoms: T[]);
   // independentSet is subset of groundSet
-  constructor(groundSet: T[][], independentSets: T[][]);
-  constructor(setOfAtomsOrGround: T[] | T[][], independentSets?: T[][]) {
-    if (setOfAtomsOrGround && setOfAtomsOrGround.length && !(setOfAtomsOrGround[0] as any).length) {
-      this.E = getAllSubsets(setOfAtomsOrGround as T[]);
+  constructor(groundSet: T[][], independentSet: T[][]);
+  constructor(setOfAtomsOrGround: T[] | T[][], independentSet?: T[][]) {
+    if (this.isSetOfAtoms(setOfAtomsOrGround)) {
+      this.E = getAllSubsets(setOfAtomsOrGround);
       this.I = findIndependents(this.E, this.hasCircuit);
     } else {
-      this.E = (setOfAtomsOrGround as T[][]) || [];
-      this.I = independentSets || [];
+      this.E = (setOfAtomsOrGround) || [];
+      this.I = independentSet || [];
     }
   }
 
@@ -62,12 +62,12 @@ export abstract class Matroid<T> {
       (independent: T[]) => independent.length > initialRank,
     );
 
-    differenceFromGround.forEach((element: T[]) => {
+    for (const element of differenceFromGround) {
       // elements not containing greater independents (~have smaller than or equal rank to colsureBasis) are added to closure
       if (!this.doesIncludeSubset(element, greaterIndependentsThanInClosureBasis)) {
         closure.push(element);
       }
-    });
+    }
     return closure;
   }
 
@@ -78,12 +78,20 @@ export abstract class Matroid<T> {
     return findBase(subSet, this.hasCircuit).length;
   }
 
-  // checking if any of `setsToCheckWith` is a subset of `setToCheck`
-  private doesIncludeSubset(setToCheck: T[], setsToCheckWith: T[][]): boolean {
-    return setsToCheckWith.some((setToCheckWith: T[]) => {
-      return setToCheckWith.every((elementToCheckWith: T) => {
-        return setToCheck.includes(elementToCheckWith);
-      });
-    });
+  /////////////////////////////////////////////////////////
+  //// API to be implemented by specific matroids END /////
+  /////////////////////////////////////////////////////////
+
+  // checking if any of `potentialSubsets` is a subset of `setToCheck`
+  private doesIncludeSubset(setToCheck: T[], potentialSubsets: T[][]): boolean {
+    return potentialSubsets.some(
+      potentialSubset => potentialSubset.every(
+        elementToCheckWith => setToCheck.includes(elementToCheckWith)
+      )
+    );
+  }
+
+  private isSetOfAtoms(setOfAtomsOrGround: T[] | T[][]): setOfAtomsOrGround is T[] {
+    return setOfAtomsOrGround && !!setOfAtomsOrGround.length && (setOfAtomsOrGround[0] as any).length === undefined;
   }
 }
