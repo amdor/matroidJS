@@ -34,7 +34,7 @@ export abstract class Matroid<T> {
       this.E = getAllSubsets(setOfAtomsOrGround);
       this.I = findIndependents(this.E, this.hasCircuit);
     } else {
-      this.E = (setOfAtomsOrGround) || [];
+      this.E = setOfAtomsOrGround || [];
       this.I = independentSet || [];
     }
   }
@@ -84,10 +84,8 @@ export abstract class Matroid<T> {
 
   // checking if any of `potentialSubsets` is a subset of `setToCheck`
   private doesIncludeSubset(setToCheck: T[], potentialSubsets: T[][]): boolean {
-    return potentialSubsets.some(
-      potentialSubset => potentialSubset.every(
-        elementToCheckWith => setToCheck.includes(elementToCheckWith)
-      )
+    return potentialSubsets.some(potentialSubset =>
+      potentialSubset.every(elementToCheckWith => setToCheck.includes(elementToCheckWith)),
     );
   }
 
