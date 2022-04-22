@@ -2,11 +2,11 @@ import { findBase } from './generic-functions';
 
 // since we work with 'sets' we must regard single elements of any type as arrays of length 1, thus every element is T[]
 export abstract class Matroid<T> {
-    get ground(): T[] | T[][] {
+    get ground(): T[] {
         return this.E;
     }
 
-    set ground(groundSet: T[] | T[][]) {
+    set ground(groundSet: T[]) {
         this.E = groundSet;
     }
 
@@ -24,19 +24,15 @@ export abstract class Matroid<T> {
 
     // ~at least one subset of E is independent, the empty set
     // we may store only the atoms for E, no need to combine all possibilities and store it
-    private E: T[] | T[][];
+    private E: T[];
     private I: T[][] | undefined;
 
     constructor(setOfAtoms: T[]);
     // independentSet is subset of groundSet
-    constructor(groundSet: T[][], independentSet: T[][]);
-    constructor(setOfAtomsOrGround: T[] | T[][], independentSet?: T[][]) {
-        if (this.isSetOfAtoms(setOfAtomsOrGround)) {
-            this.E = setOfAtomsOrGround;
-        } else {
-            this.E = setOfAtomsOrGround ?? [];
-            this.I = independentSet ?? [];
-        }
+    constructor(groundSet: T[], independentSet: T[][]);
+    constructor(setOfAtomsOrGround: T[], independentSet?: T[][]) {
+        this.E = setOfAtomsOrGround ?? [];
+        this.I = independentSet ?? [];
     }
 
     /////////////////////////////////////////////////////
