@@ -2,7 +2,9 @@ import { Matroid } from './matroid';
 
 type CircuitFunc<F> = (set: F[]) => boolean;
 
-function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>): T[] {
+function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>): T[];
+function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank: number, findAll: boolean): T[][];
+function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: number, findAll?: boolean): T[] | T[][] {
     const getNextAtomFromPosition = (combination: T[], position: number): T | undefined => {
         const lastItemIndex = ground.indexOf(combination[position]);
         if (lastItemIndex >= ground.length - 1) {
@@ -39,9 +41,15 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>): T[] {
         return foundOne ? nextCombination : undefined;
     };
 
-    const testAllCombinations = [];
+    const allBases = [];
+
     // looking for all the atomsInCurrentCombination sized combinations
-    for (let atomsInCurrentCombination = ground.length; atomsInCurrentCombination > 0; atomsInCurrentCombination--) {
+    // looking only rank sized combinations if we know the rank
+    for (
+        let atomsInCurrentCombination = rank ?? ground.length;
+        atomsInCurrentCombination > (rank ?? 1) - 1;
+        atomsInCurrentCombination--
+    ) {
         let currentCombination = [];
         currentCombination.push(ground[0]);
         // initial combination
@@ -54,9 +62,14 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>): T[] {
             currentCombination[combinationPosition] = nextAtom;
         }
         if (!hasCircuit(currentCombination)) {
-            return currentCombination;
+            if (!findAll) {
+                return currentCombination;
+            }
+            allBases.push(currentCombination);
         }
 
+        // find the next combination with fix firs N items, it there's no more, find combinations with
+        // N-1 elements fixed, until there are no elements fixed anymore
         for (let firstFixedAtomInCombination = currentCombination.length - 2; firstFixedAtomInCombination >= -1; ) {
             const nextCombination = getNextCombination(currentCombination, firstFixedAtomInCombination);
             if (nextCombination === undefined) {
@@ -65,11 +78,14 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>): T[] {
             }
             currentCombination = nextCombination;
             if (!hasCircuit(currentCombination)) {
-                return currentCombination;
+                if (!findAll) {
+                    return currentCombination;
+                }
+                allBases.push(currentCombination);
             }
         }
     }
-    return [];
+    return allBases;
 }
 
 export function getAllSubsets<T>(toSubset: T[]): T[][] {
@@ -83,9 +99,9 @@ export function findBase<T>(matroidOrGround: Matroid<T> | T[], hasCircuit?: Circ
         return findGroundBase(matroidOrGround as T[], hasCircuit);
     }
     const independents = (matroidOrGround as Matroid<T>).independent;
-    if (!independents) {
-        const { ground, hasCircuit } = matroidOrGround as Matroid<T>;
-        return findGroundBase(ground, hasCircuit);
+    if (!independents?.length) {
+        const { ground, hasCircuit: mHasCircuit } = matroidOrGround as Matroid<T>;
+        return findGroundBase(ground, mHasCircuit);
     }
     const indeps = [...(matroidOrGround as Matroid<T>).independent!];
     // looking for max independent
@@ -93,21 +109,9 @@ export function findBase<T>(matroidOrGround: Matroid<T> | T[], hasCircuit?: Circ
 }
 
 export function findAllBases<T>(matroid: Matroid<T>): T[][] {
-    const maxIndependents: T[][] = [];
     const ground = matroid.ground;
     const firstBase = findBase(matroid);
-
-    // TODO
-    // if (firstBase.length > 0) {
-    //     ground
-    //         .filter((subSet: T[]) => subSet.length === firstBase.length)
-    //         .forEach((element: T[]) => {
-    //             if (!matroid.hasCircuit(element)) {
-    //                 maxIndependents.push(element);
-    //             }
-    //         });
-    // }
-    return maxIndependents;
+    return findGroundBase(ground, matroid.hasCircuit, firstBase.length, true);
 }
 
 function findIndependentsFromSubSequences<T>(
@@ -138,16 +142,15 @@ function findIndependentsFromSubSequences<T>(
 }
 
 function findIndependentsFromAtoms<T>(setOfAtomsToSearch: T[], hasCircuit: CircuitFunc<T>): T[][] {
-    const independents: T[][] = [];
+    const independents: T[][] = [[]];
     const maxRank = setOfAtomsToSearch.length;
     // singles
     let combinations: T[][] = setOfAtomsToSearch.map(atom => [atom]);
     let nextCombinations: T[][] = [];
-    let currentMaxRank = 0;
     // the size of each element in combination, first it's just the atoms [[atom1], [atom2]...], each are lenght 1
     for (let currentCombinationItemSize = 1; currentCombinationItemSize <= maxRank; currentCombinationItemSize++) {
         nextCombinations = [];
-        independents.push(...findIndependentsFromSubSequences(combinations, hasCircuit, currentMaxRank));
+        independents.push(...findIndependentsFromSubSequences(combinations, hasCircuit, 0));
         for (let i = 0; i < combinations.length; i++) {
             const nextCombinationLeftOperand = combinations[i];
             const lastAtomInLeftOperand = nextCombinationLeftOperand[nextCombinationLeftOperand.length - 1];

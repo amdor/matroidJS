@@ -1,6 +1,6 @@
 // tslint:disable:max-classes-per-file
-import { findAllBases } from "../src/generic-functions";
-import { Matroid } from "../src/matroid";
+import { findAllBases, findIndependents } from '../src/generic-functions';
+import { Matroid } from '../src/matroid';
 
 class Class {
     public name: string;
@@ -13,7 +13,7 @@ class Occurance {
     public day: Day;
     public week: Week;
     public timeSlot: number;
-    public place: Building
+    public place: Building;
 }
 
 enum Day {
@@ -21,12 +21,12 @@ enum Day {
     Tuesday,
     Wednesday,
     Thursday,
-    Friday
+    Friday,
 }
 
 enum Week {
     A,
-    B
+    B,
 }
 
 enum Building {
@@ -35,20 +35,30 @@ enum Building {
     K,
     E,
     St,
-    R
+    R,
 }
 
 function isOverlappingOrConsecutiveInDifferentBuilding(classA: Class, classB: Class): boolean {
     return classA.occurances.some((occA: Occurance) =>
-        classB.occurances.some((occB: Occurance) => occA.week === occB.week && occA.day === occB.day
-            && (occA.timeSlot === occB.timeSlot || Math.abs(occA.timeSlot - occB.timeSlot) === 1 && occA.place !== occB.place)
-        ))
+        classB.occurances.some(
+            (occB: Occurance) =>
+                occA.week === occB.week &&
+                occA.day === occB.day &&
+                (occA.timeSlot === occB.timeSlot ||
+                    (Math.abs(occA.timeSlot - occB.timeSlot) === 1 && occA.place !== occB.place)),
+        ),
+    );
 }
 
-function isExtendableWithClass(indepClasses: { [key: string]: Class }, claz: Class, otherCondition: (cl1: Class, cl2: Class) => boolean): boolean {
+function isExtendableWithClass(
+    indepClasses: { [key: string]: Class },
+    claz: Class,
+    otherCondition: (cl1: Class, cl2: Class) => boolean,
+): boolean {
     const indepClassesValues = Object.keys(indepClasses).map(key => indepClasses[key]);
     return indepClassesValues.some(
-        (indepClass: Class) => isOverlappingOrConsecutiveInDifferentBuilding(indepClass, claz) && otherCondition(indepClass, claz)
+        (indepClass: Class) =>
+            isOverlappingOrConsecutiveInDifferentBuilding(indepClass, claz) && otherCondition(indepClass, claz),
     );
 }
 
@@ -75,11 +85,10 @@ class LectorTimetableMatroid extends Matroid<Class> {
     // - they are in the same time OR they are in consecutive timeslots in different buildings
     // if returns true, then dependent
     public hasCircuit(subsetToCheck: Class[]): boolean {
-        const isSameLector = (indepClass: Class, classToAdd: Class) => indepClass.lector === classToAdd.lector
+        const isSameLector = (indepClass: Class, classToAdd: Class) => indepClass.lector === classToAdd.lector;
         return classMatroidHasCircuit(subsetToCheck, isSameLector);
     }
 }
-
 
 class StudentTimetableMatroid extends Matroid<Class> {
     // classes are dependent if (this is OR condition)
@@ -91,51 +100,57 @@ class StudentTimetableMatroid extends Matroid<Class> {
 }
 
 const CLASS1: Class = {
-    name: "CLASS1",
+    name: 'CLASS1',
     occurances: [{ week: Week.A, day: Day.Monday, timeSlot: 2, place: Building.E }],
-    lector: "Dr Knowhow",
-    freeCapacity: 15
-}
+    lector: 'Dr Knowhow',
+    freeCapacity: 15,
+};
 
 const CLASS2: Class = {
-    name: "CLASS2",
-    lector: "Ulrich von Liechtenstein",
+    name: 'CLASS2',
+    lector: 'Ulrich von Liechtenstein',
     occurances: [{ week: Week.A, day: Day.Monday, timeSlot: 3, place: Building.Q }],
-    freeCapacity: 15
-}
+    freeCapacity: 15,
+};
 
 const CLASS3: Class = {
-    name: "CLASS3",
-    lector: "Ulrich von Liechtenstein",
+    name: 'CLASS3',
+    lector: 'Ulrich von Liechtenstein',
     occurances: [{ week: Week.A, day: Day.Monday, timeSlot: 4, place: Building.Q }],
-    freeCapacity: 15
-}
+    freeCapacity: 15,
+};
 
 const CLASS1_DIFF_BUILD: Class = {
-    ...CLASS1, occurances: [{ ...CLASS1.occurances[0], place: Building.Q }], name: "CLASS1_DIFF_BUILD"
+    ...CLASS1,
+    occurances: [{ ...CLASS1.occurances[0], place: Building.Q }],
+    name: 'CLASS1_DIFF_BUILD',
 };
 
 const CLASS2_DIFF_LECTOR: Class = {
-    ...CLASS2, lector: "Prof Spiderpig", name: "CLASS2_DIFF_LECTOR"
-}
+    ...CLASS2,
+    lector: 'Prof Spiderpig',
+    name: 'CLASS2_DIFF_LECTOR',
+};
 
 const CLASS3_NO_CAPACITY: Class = {
-    ...CLASS3, freeCapacity: 0, name: "CLASS3_NO_CAPACITY"
-}
+    ...CLASS3,
+    freeCapacity: 0,
+    name: 'CLASS3_NO_CAPACITY',
+};
 
 const CLASSES = [CLASS1, CLASS2, CLASS3, CLASS1_DIFF_BUILD, CLASS2_DIFF_LECTOR, CLASS3_NO_CAPACITY];
 
-describe("a timetable matroid", () => {
+describe('a timetable matroid', () => {
     let matroid: Matroid<Class>;
 
-    describe("a student timetable matroid", () => {
+    describe('a student timetable matroid', () => {
         beforeEach(() => {
             matroid = new StudentTimetableMatroid(CLASSES);
         });
 
-        // if CLASSES is the set of classes a student is interested in bases are the class groups 
+        // if CLASSES is the set of classes a student is interested in bases are the class groups
         // available for simoultanous attendance
-        it("should have two bases with maximum independent class sets", () => {
+        it('should have two bases with maximum independent class sets', () => {
             const bases = findAllBases(matroid);
             expect(bases.length).toBe(4);
             for (const base of bases) {
@@ -145,36 +160,32 @@ describe("a timetable matroid", () => {
 
         // CLASS2 and CLASS3 are independent
         // checking what classes cannot be attended if these two are
-        it("should provide closure for subset of the matroid", () => {
-            const subset = matroid.ground.find((element: Class[]) => element.length === 2 && element.includes(CLASS2) && element.includes(CLASS3)) ?? [];
+        it('should provide closure for subset of the matroid', () => {
+            const subset = [CLASS2, CLASS3];
 
             // interested only in subsets where CLASS2 and CLASS3 are in as base
-            let closureSet = matroid.getClosure(subset)
-                .filter((closureSubset: Class[]) => closureSubset.includes(CLASS2) && closureSubset.includes(CLASS3));
+            let closureSet = matroid.getClosure(subset);
             // let's not consider the original subset in the closures
-            closureSet = closureSet.map(closureElem => closureElem.filter((claz: Class) => claz !== CLASS2 && claz !== CLASS3));
+            closureSet = closureSet.filter((claz: Class) => claz !== CLASS2 && claz !== CLASS3);
 
-            closureSet.sort((closureSubsetA: Class[], closureSubsetB: Class[]) => {
-                return closureSubsetA.length - closureSubsetB.length
-            });
             // CLASS2 is in dependency with both CLASS1 and CLASS2_DIFF_LECTOR, while CLASS3 is with CLASS3_NO_CAPACITY
             // hence the two of them have at most 3 dependents
-            expect(closureSet[closureSet.length - 1].length).toBe(3);
+            expect(closureSet.length).toBe(3);
         });
     });
 
-    describe("a lector timetable matroid", () => {
+    describe('a lector timetable matroid', () => {
         beforeEach(() => {
             matroid = new LectorTimetableMatroid(CLASSES);
         });
 
-        describe("when there are 2 classes at the same time, with the same lector", () => {
+        describe('when there are 2 classes at the same time, with the same lector', () => {
             beforeEach(() => {
                 matroid = new LectorTimetableMatroid([CLASS1, CLASS1_DIFF_BUILD]);
             });
 
-            it("should have independent subsets of 1 class", () => {
-                const independents = matroid.independent;
+            it('should have independent subsets of 1 class', () => {
+                const independents = findIndependents(matroid.ground, matroid.hasCircuit);
                 expect(independents.length).toBe(3); // [] is always independent
                 expect(independents[0].length).toBe(0);
                 expect(independents[1].length).toBe(1);
@@ -182,15 +193,14 @@ describe("a timetable matroid", () => {
             });
         });
 
-        // if CLASSES is the set of classes a student is interested in bases are the class groups 
+        // if CLASSES is the set of classes a student is interested in bases are the class groups
         // available for simoultanous attendance
-        it("should have two bases with maximum independent class sets", () => {
+        it('should have two bases with maximum independent class sets', () => {
             const bases = findAllBases(matroid);
             expect(bases.length).toBe(4);
             for (const base of bases) {
                 expect(base.length).toBe(4);
             }
         });
-
     });
 });

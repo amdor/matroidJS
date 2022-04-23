@@ -16,8 +16,8 @@ describe('generic helper functions', () => {
     describe('findIndependents', () => {
         it('should find all combinations', () => {
             const independents = findIndependents<Value>(atoms, hasCircuitSpy);
-            expect(independents.length).toBe(15);
-            expect(independents[14]).toEqual(atoms);
+            expect(independents.length).toBe(16);
+            expect(independents[15]).toEqual(atoms);
         });
     });
 

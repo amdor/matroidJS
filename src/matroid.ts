@@ -1,4 +1,4 @@
-import { findBase } from './generic-functions';
+import { findBase, findIndependents } from './generic-functions';
 
 // since we work with 'sets' we must regard single elements of any type as arrays of length 1, thus every element is T[]
 export abstract class Matroid<T> {
@@ -47,7 +47,7 @@ export abstract class Matroid<T> {
 
     // Get closure for a subset of the groundset (E)
     // @return the closure of closureBasis subSet on E
-    public getClosure(closureBasisAtoms: T[]): T[][] {
+    public getClosure(closureBasisAtoms: T[]): T[] {
         const closure: T[] = [...closureBasisAtoms];
         const initialRank = this.rankFunc(closureBasisAtoms);
         const groundAtoms = this.isSetOfAtoms(this.E) ? this.E : this.getUniqueAtoms(this.E);
@@ -55,13 +55,15 @@ export abstract class Matroid<T> {
         const differenceFromGround = groundAtoms.filter((groundAtom: T) => !closureBasisAtoms.includes(groundAtom));
 
         for (const element of differenceFromGround) {
-            const potentialNewClosure = [...closureBasisAtoms, element];
-            if(initialRank === potentialNewClosure.length && !this.hasCircuit(potentialNewClosure))
+            const closureBasisWithNewElement = [...closureBasisAtoms, element];
+            if (initialRank === this.rankFunc(closureBasisWithNewElement)) {
+                closure.push(element);
+            }
         }
         return closure;
     }
 
-    protected rankFunc(subSet?: T[][]): number {
+    protected rankFunc(subSet?: T[]): number {
         if (!subSet) {
             return findBase(this).length;
         }
@@ -76,7 +78,7 @@ export abstract class Matroid<T> {
         return setOfAtomsOrGround && !!setOfAtomsOrGround.length && (setOfAtomsOrGround[0] as any).length === undefined;
     }
 
-    private getUniqueAtoms(atomsArr: T[][]): T[] { 
+    private getUniqueAtoms(atomsArr: T[][]): T[] {
         return atomsArr.reduce((acc, curr) => {
             for (let atom of curr) {
                 if (!acc.includes(atom)) {
@@ -84,6 +86,6 @@ export abstract class Matroid<T> {
                 }
             }
             return acc;
-        }, [])
+        }, []);
     }
 }
