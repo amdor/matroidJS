@@ -80,7 +80,7 @@ export abstract class Matroid<T> {
 
     private getUniqueAtoms(atomsArr: T[][]): T[] {
         return atomsArr.reduce((acc, curr) => {
-            for (let atom of curr) {
+            for (const atom of curr) {
                 if (!acc.includes(atom)) {
                     acc.push(atom);
                 }

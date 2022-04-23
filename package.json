@@ -1,42 +1,42 @@
 {
-  "name": "matroidjs",
-  "version": "0.3.1",
-  "description": "",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "test": "jest --config jest.config.js",
-    "build": "tsc",
-    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
-    "lint": "tslint -p tsconfig.json",
-    "prepublishOnly": "npm test && npm run lint",
-    "preversion": "npm run lint",
-    "version": "npm run format && git add . && git commit -m 'chore: version'",
-    "postversion": "git push && git push --tags"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/amdor/matroidJS.git"
-  },
-  "keywords": [
-    "matroid"
-  ],
-  "author": "ZsoltD",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/amdor/matroidJS/issues"
-  },
-  "homepage": "https://github.com/amdor/matroidJS#readme",
-  "devDependencies": {
-    "@types/jest": "^27.4.1",
-    "jest": "^27.5.1",
-    "prettier": "^1.19.1",
-    "ts-jest": "^27.1.4",
-    "tslint": "^5.20.1",
-    "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.7.3"
-  },
-  "files": [
-    "dist/**/*"
-  ]
+    "name": "matroidjs",
+    "version": "1.0.0",
+    "description": "",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "test": "jest --config jest.config.js",
+        "build": "tsc",
+        "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+        "lint": "tslint -p tsconfig.json -c tslint.json",
+        "prepublishOnly": "npm test && npm run lint",
+        "preversion": "npm run lint",
+        "version": "npm run format && git add . && git commit -m 'chore: version'",
+        "postversion": "git push && git push --tags"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/amdor/matroidJS.git"
+    },
+    "keywords": [
+        "matroid"
+    ],
+    "author": "ZsoltD",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/amdor/matroidJS/issues"
+    },
+    "homepage": "https://github.com/amdor/matroidJS#readme",
+    "devDependencies": {
+        "@types/jest": "^27.4.1",
+        "jest": "^27.5.1",
+        "prettier": "^1.19.1",
+        "ts-jest": "^27.1.4",
+        "tslint": "^5.20.1",
+        "tslint-config-prettier": "^1.18.0",
+        "typescript": "^3.7.3"
+    },
+    "files": [
+        "dist/**/*"
+    ]
 }
