@@ -42,6 +42,51 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: numbe
     };
 
     const allBases = [];
+    let knownCircuits: T[][] = [];
+
+    const checkForKnownCircuit = (currentCombination: T[]): number | undefined => {
+        const currentCombinationIndexMap = currentCombination.reduce((acc, curr, index) => acc)
+        // the index of the circuit element to which all other circuit elements are to the left, being the highest
+        let maxCircuitIndexInCombination: number | undefined;
+        knownCircuits.find(circuit => {
+            let maxIndex: number | undefined;
+            const isCircuitInCombination = circuit.every(circuitElement => {
+                // every circuit element is in the combination
+                const index = currentCombination.findIndex(element => element === circuitElement);
+                if (index === -1) {
+                    return false;
+                }
+                maxIndex = (maxIndex ?? 0) <= index ? index : maxIndex;
+                return true;
+            });
+            if (isCircuitInCombination) {
+                maxCircuitIndexInCombination = maxIndex;
+            }
+            return isCircuitInCombination;
+        });
+        return maxCircuitIndexInCombination;
+    };
+
+    const fillKnownCircuits = () => {
+        // check all <=3 long combinations
+        const baseCombination: T[] = [...ground];
+        let currentCombination = baseCombination.slice(0, 3);
+        while (currentCombination.length > 1) {
+            for (let firstFixedAtomInCombination = currentCombination.length - 2; firstFixedAtomInCombination >= -1; ) {
+                const nextCombination = getNextCombination(currentCombination, firstFixedAtomInCombination);
+                if (nextCombination === undefined) {
+                    firstFixedAtomInCombination--;
+                    continue;
+                }
+                if (hasCircuit(currentCombination)) {
+                    knownCircuits.push(currentCombination);
+                }
+                currentCombination = nextCombination;
+            }
+            currentCombination.pop();
+        }
+    };
+    fillKnownCircuits();
 
     // looking for all the atomsInCurrentCombination sized combinations
     // looking only rank sized combinations if we know the rank
@@ -50,7 +95,8 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: numbe
         atomsInCurrentCombination > (rank ?? 1) - 1;
         atomsInCurrentCombination--
     ) {
-        let currentCombination = [];
+        knownCircuits = knownCircuits.filter(circuit => circuit.length <= atomsInCurrentCombination);
+        let currentCombination: T[] = [];
         currentCombination.push(ground[0]);
         // initial combination
         for (let combinationPosition = 1; combinationPosition < atomsInCurrentCombination; combinationPosition++) {
@@ -77,6 +123,13 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: numbe
                 continue;
             }
             currentCombination = nextCombination;
+            // going from last element to first with variable atoms, if there is a circuit among the fixed atoms, all
+            // combinations starting with it will have a circuit, so the first fixed index must be under it
+            const maxElementIndexForKnownCircuit = checkForKnownCircuit(currentCombination);
+            if (maxElementIndexForKnownCircuit) {
+                firstFixedAtomInCombination = maxElementIndexForKnownCircuit - 1;
+                continue;
+            }
             if (!hasCircuit(currentCombination)) {
                 if (!findAll) {
                     return currentCombination;
@@ -147,7 +200,7 @@ function findIndependentsFromAtoms<T>(setOfAtomsToSearch: T[], hasCircuit: Circu
     // singles
     let combinations: T[][] = setOfAtomsToSearch.map(atom => [atom]);
     let nextCombinations: T[][] = [];
-    // the size of each element in combination, first it's just the atoms [[atom1], [atom2]...], each are lenght 1
+    // the size of each element in combination, first it's just the atoms [[atom1], [atom2]...], each are length 1
     for (let currentCombinationItemSize = 1; currentCombinationItemSize <= maxRank; currentCombinationItemSize++) {
         nextCombinations = [];
         independents.push(...findIndependentsFromSubSequences(combinations, hasCircuit, 0));

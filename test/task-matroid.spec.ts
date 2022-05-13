@@ -95,4 +95,19 @@ describe('a task matroid', () => {
         ).toBe(true);
         expect(taskMatroid.getClosure(base).length).toEqual(taskMatroid.ground.length);
     });
+
+    describe('when base is bigger', () => {
+        beforeEach(() => {
+            let newTasks = [];
+            for (let i = 0; i < 18; i++) {
+                newTasks.push({ contributors: [MOCK_PEOPLE[1]], id: `${i + 5}` });
+            }
+            taskMatroid = new TaskMatroid([...MOCK_TASKS, ...newTasks]);
+        });
+
+        it('should be still fast and yield the correct result', () => {
+            const base = findBase(taskMatroid);
+            expect(base.length).toBe(4); // MOCK_TASKS[0, 2, 3, 4] for example
+        });
+    });
 });
