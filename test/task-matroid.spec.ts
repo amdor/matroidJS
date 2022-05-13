@@ -105,6 +105,7 @@ describe('a task matroid', () => {
             taskMatroid = new TaskMatroid([...MOCK_TASKS, ...newTasks]);
         });
 
+        // ~14s
         it('should be still fast and yield the correct result', () => {
             const base = findBase(taskMatroid);
             expect(base.length).toBe(4); // MOCK_TASKS[0, 2, 3, 4] for example

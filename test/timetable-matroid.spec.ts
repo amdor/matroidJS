@@ -150,6 +150,11 @@ describe('a timetable matroid', () => {
 
         // if CLASSES is the set of classes a student is interested in bases are the class groups
         // available for simoultanous attendance
+        // bases:
+        // CLASS2, CLASS3, CLASS1_DIFF_BUILD
+        // CLASS2, CLASS1_DIFF_BUILD, CLASS3_NO_CAPACITY
+        // CLASS3, CLASS1_DIFF_BUILD, CLASS2_DIFF_LECTOR
+        // CLASS1_DIFF_BUILD, CLASS2_DIFF_LECTOR, CLASS3_NO_CAPACITY
         it('should have two bases with maximum independent class sets', () => {
             const bases = findAllBases(matroid);
             expect(bases.length).toBe(4);

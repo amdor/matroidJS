@@ -25,7 +25,7 @@ describe('generic helper functions', () => {
         it('should find no base in a fully dependent matroid', () => {
             hasCircuitSpy.mockReturnValue(true);
             findBase(atoms, hasCircuitSpy);
-            expect(hasCircuitSpy).toHaveBeenCalledTimes(15);
+            expect(hasCircuitSpy).toHaveBeenCalledTimes(20);
             expect(hasCircuitSpy).toHaveBeenCalledWith(atoms);
         });
     });
