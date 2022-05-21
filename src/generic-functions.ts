@@ -4,6 +4,20 @@ type CircuitFunc<F> = (set: F[]) => boolean;
 type Id<T> = T & { id: number };
 type IdArray<T> = Array<Id<T>>;
 
+// tslint:disable-next-line: variable-name
+let _useKnownCircuitsCheck = false;
+
+/**
+ * If turned on finding base will look first for 1-3 long circuits and check
+ * combinations against it first.
+ * When a circuit is found in a combination all combinations starting with the part
+ * containing the circuit will be skipped.
+ * On the other hand it check every combination against every `known circuit`
+ * @param flag turns feature on or off
+ */
+export function useKnownCircuitsCheck(flag: boolean) {
+    _useKnownCircuitsCheck = flag;
+}
 function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>): T[];
 function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank: number, findAll: boolean): T[][];
 function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: number, findAll?: boolean): T[] | T[][] {
@@ -29,7 +43,8 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: numbe
         // checking atoms backward to find one that is still changable
         for (let lookBackIndex = combination.length - 1; lookBackIndex > fixPosition; lookBackIndex--) {
             let foundNextAtom = getNextAtomFromPosition(combination, lookBackIndex);
-            if (foundNextAtom === undefined) {
+            // no proper next atom or not enough atoms to fill back (e.g. the found is the last element on the first position)
+            if (foundNextAtom === undefined || combination.length - lookBackIndex > _ground.length - foundNextAtom.id) {
                 continue;
             }
             foundOne = true;
@@ -64,7 +79,9 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: numbe
         }, {} as Record<number, Id<T>>);
         // the index of the circuit element to which all other circuit elements are to the left, being the highest
         let maxCircuitIndexInCombination: number | undefined;
-        knownCircuits.find(circuit => {
+        knownCircuits
+            .sort((a, b) => a.length - b.length)
+            .find(circuit => {
             let maxIndex: number | undefined;
             const isCircuitInCombination = circuit.every(circuitElement => {
                 // every circuit element is in the combination
@@ -86,8 +103,10 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: numbe
     const fillKnownCircuits = () => {
         // check all <=3 long combinations
         const baseCombination = [..._ground];
+        let referenceCombination;
         let currentCombination = baseCombination.slice(0, MAX_KNOWN_CIRCUIT_SIZE);
-        while (currentCombination.length > 1) {
+        referenceCombination = currentCombination;
+        while (referenceCombination.length > 1) {
             for (let firstFixedAtomInCombination = currentCombination.length - 2; firstFixedAtomInCombination >= -1; ) {
                 const nextCombination = getNextCombination(currentCombination, firstFixedAtomInCombination);
                 if (nextCombination === undefined) {
@@ -99,10 +118,14 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: numbe
                 }
                 currentCombination = nextCombination;
             }
-            currentCombination.pop();
+            referenceCombination = referenceCombination.slice(0, referenceCombination.length - 1);
+            currentCombination = referenceCombination;
         }
     };
+
+    if (_useKnownCircuitsCheck) {
     fillKnownCircuits();
+    }
 
     // looking for all the atomsInCurrentCombination sized combinations
     // looking only rank sized combinations if we know the rank
@@ -133,6 +156,11 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: numbe
             allBases.push(currentCombination);
         }
 
+        // there's no other combination if all elements are present once already
+        if (atomsInCurrentCombination === _ground.length) {
+            continue;
+        }
+
         // find the next combination with fix firs N items, it there's no more, find combinations with
         // N-1 elements fixed, until there are no elements fixed anymore
         for (let firstFixedAtomInCombination = currentCombination.length - 2; firstFixedAtomInCombination >= -1; ) {
@@ -143,12 +171,26 @@ function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: numbe
                 continue;
             }
             currentCombination = nextCombination;
+
+            if (_useKnownCircuitsCheck) {
             // going from last element to first with variable atoms, if there is a circuit among the fixed atoms, all
             // combinations starting with it will have a circuit, so the first fixed index must be under it
             const maxElementIndexForKnownCircuit = checkForKnownCircuit(currentCombination);
             if (maxElementIndexForKnownCircuit && maxElementIndexForKnownCircuit <= firstFixedAtomInCombination) {
+                    for (
+                        let fillIndex = maxElementIndexForKnownCircuit;
+                        fillIndex < currentCombination.length;
+                        fillIndex++
+                    ) {
+                        const nextAtom = getNextAtomFromPosition(nextCombination, fillIndex);
+                        if (nextAtom === undefined) {
+                            break;
+                        }
+                        nextCombination[fillIndex] = nextAtom;
+                    }
                 firstFixedAtomInCombination = maxElementIndexForKnownCircuit - 1;
                 continue;
+            }
             }
             if (!hasCircuit(currentCombination)) {
                 if (!findAll) {

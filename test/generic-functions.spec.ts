@@ -1,4 +1,4 @@
-import { findBase, findIndependents } from '../src/generic-functions';
+import { findBase, findIndependents, useKnownCircuitsCheck } from '../src/generic-functions';
 
 interface Value {
     value: string;
@@ -25,8 +25,16 @@ describe('generic helper functions', () => {
         it('should find no base in a fully dependent matroid', () => {
             hasCircuitSpy.mockReturnValue(true);
             findBase(atoms, hasCircuitSpy);
-            expect(hasCircuitSpy).toHaveBeenCalledTimes(20);
+            expect(hasCircuitSpy).toHaveBeenCalledTimes(23);
             expect(hasCircuitSpy).toHaveBeenCalledWith(atoms);
+        });
+    });
+
+    describe('findBase', () => {
+        it('should find a base', () => {
+            hasCircuitSpy.mockImplementation(a => a[0].value === 'a' && a[1].value === 'b');
+            const base = findBase(atoms, hasCircuitSpy);
+            expect(base.length).toBe(3);
         });
     });
 });
