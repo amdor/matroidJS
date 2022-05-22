@@ -45,8 +45,10 @@ export abstract class Matroid<T> {
      */
     public abstract hasCircuit(subsetToCheck: T[]): boolean;
 
-    // Get closure for a subset of the groundset (E)
-    // @return the closure of closureBasis subSet on E
+    /**
+     * Get closure for a subset of the groundset (E)
+     * @returns the closure of closureBasis subSet on E
+     */
     public getClosure(closureBasisAtoms: T[]): T[] {
         const closure: T[] = [...closureBasisAtoms];
         const initialRank = this.rankFunc(closureBasisAtoms);
