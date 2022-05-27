@@ -1,8 +1,13 @@
-import { CircuitFunc, Id, IdArray } from "../model";
+import { CircuitFunc, Id, IdArray } from '../model';
 
 export function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>): T[];
 export function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank: number, findAll: boolean): T[][];
-export function findGroundBase<T>(ground: T[], hasCircuit: CircuitFunc<T>, rank?: number, findAll?: boolean): T[] | T[][] {
+export function findGroundBase<T>(
+    ground: T[],
+    hasCircuit: CircuitFunc<T>,
+    rank?: number,
+    findAll?: boolean,
+): T[] | T[][] {
     // tslint:disable-next-line: variable-name
     const _ground: IdArray<T> = ground.map((e: any, i) => {
         e.id = i;
