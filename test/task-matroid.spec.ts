@@ -1,5 +1,6 @@
 // tslint:disable:max-classes-per-file
-import { findBase, findIndependents } from '../src/generic-functions';
+import { findIndependents } from '../src/generic-functions';
+import { findBase } from '../src/private/find-base-forward';
 import { Matroid } from '../src/matroid';
 
 class Person {
@@ -75,7 +76,7 @@ describe('a task matroid', () => {
     });
 
     it('should be dependent when there are tasks with the same contributor', () => {
-        const rank = findBase(taskMatroid.ground, taskMatroid.hasCircuit).length;
+        const rank = findBase(taskMatroid).length;
         expect(rank).toBe(3);
         expect(taskMatroid.ground.length).toBeGreaterThan(taskMatroid.rank);
     });
@@ -96,7 +97,7 @@ describe('a task matroid', () => {
         expect(taskMatroid.getClosure(base).length).toEqual(taskMatroid.ground.length);
     });
 
-    describe('when base is bigger', () => {
+    fdescribe('when base is bigger', () => {
         beforeEach(() => {
             let newTasks = [];
             for (let i = 0; i < 18; i++) {
@@ -105,7 +106,6 @@ describe('a task matroid', () => {
             taskMatroid = new TaskMatroid([...MOCK_TASKS, ...newTasks]);
         });
 
-        // ~14s
         it('should be still fast and yield the correct result', () => {
             const base = findBase(taskMatroid);
             expect(base.length).toBe(4); // MOCK_TASKS[0, 2, 3, 4] for example

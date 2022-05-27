@@ -1,4 +1,4 @@
-import { findBase, findIndependents, useKnownCircuitsCheck } from '../src/generic-functions';
+import { findIndependents, findBase } from '../src/generic-functions';
 
 interface Value {
     value: string;
@@ -6,11 +6,11 @@ interface Value {
 
 describe('generic helper functions', () => {
     let atoms: Value[];
-    let hasCircuitSpy: jest.Mock;
+    let hasCircuitSpy: jasmine.Spy;
 
     beforeEach(() => {
         atoms = [{ value: 'a' }, { value: 'b' }, { value: 'c' }, { value: 'd' }];
-        hasCircuitSpy = jest.fn(() => false);
+        hasCircuitSpy = jasmine.createSpy('hasCircuit').and.callFake(() => false);
     });
 
     describe('findIndependents', () => {
@@ -23,16 +23,21 @@ describe('generic helper functions', () => {
 
     describe('findGroundBase', () => {
         it('should find no base in a fully dependent matroid', () => {
-            hasCircuitSpy.mockReturnValue(true);
+            hasCircuitSpy.and.callFake(() => true);
             findBase(atoms, hasCircuitSpy);
-            expect(hasCircuitSpy).toHaveBeenCalledTimes(23);
-            expect(hasCircuitSpy).toHaveBeenCalledWith(atoms);
+            expect(hasCircuitSpy).toHaveBeenCalledTimes(4);
+            for (let atom of atoms) {
+                expect(hasCircuitSpy).toHaveBeenCalledWith([atom]);
+            }
         });
     });
 
     describe('findBase', () => {
         it('should find a base', () => {
-            hasCircuitSpy.mockImplementation(a => a[0].value === 'a' && a[1].value === 'b');
+            hasCircuitSpy.and.callFake(a => {
+                const am = a.map(e => e.value);
+                return am.includes('a') && am.includes('b');
+            });
             const base = findBase(atoms, hasCircuitSpy);
             expect(base.length).toBe(3);
         });
