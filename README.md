@@ -1,4 +1,5 @@
 # matroidJS
+# moved to https://github.com/amdor/ng-poc-and-libs/tree/main/packages/matroidJS
 
 A library to model any data structures with [matroids](https://en.wikipedia.org/wiki/Matroid). "A matroid is a structure that abstracts and generalizes the notion of linear independence in vector spaces". For example any finite graphs and matrices can be viewed as matroids. This library views matroids as a way to model dependencies in any given sets.
 
